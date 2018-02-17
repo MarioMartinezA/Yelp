@@ -8,9 +8,10 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
     
     var businesses: [Business]!
+    var isMoreDataLoading = false
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -31,6 +32,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
                     print(business.name!)
                     print(business.address!)
                 }
+                
             }
             
             }
@@ -69,6 +71,37 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
         return cell
     }
+    
+    func loadMoreData() {
+        // Creating the Request
+        Business.getMoreData(offset: businesses.count, completion: { (businesses: [Business]?, error: Error?) -> Void in
+            for business in businesses! {
+                self.businesses.append(business)
+            }
+            self.tableView.reloadData()
+            self.isMoreDataLoading = false
+            }
+        )
+
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Handle scroll behavior here
+        if(!isMoreDataLoading) {
+            let scrollViewContentHeight = tableView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
+            
+            
+            if(scrollView.contentOffset.y > scrollOffsetThreshold && tableView.isDragging) {
+                isMoreDataLoading = true
+                
+                loadMoreData()
+                
+            }
+        }
+        
+    }
+    
     /*
      // MARK: - Navigation
      
