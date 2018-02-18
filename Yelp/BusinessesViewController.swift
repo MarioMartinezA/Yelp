@@ -8,15 +8,20 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate, UISearchBarDelegate {
     
     var businesses: [Business]!
     var isMoreDataLoading = false
     
+    
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        searchBar.delegate = self
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -51,6 +56,25 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
     }
     
+    // This method updates filteredData based on the text in the Search Box
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        Business.searchWithTerm(term: searchText, completion: { (businesses: [Business]?, error: Error?) -> Void in
+            
+            self.businesses = businesses
+            self.tableView.reloadData()
+            if let businesses = businesses {
+                for business in businesses {
+                    print(business.name!)
+                    print(business.address!)
+                }
+                
+            }
+        }
+        )
+        
+        tableView.reloadData()
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -82,14 +106,13 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             self.isMoreDataLoading = false
             }
         )
-
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Handle scroll behavior here
         if(!isMoreDataLoading) {
             let scrollViewContentHeight = tableView.contentSize.height
-            let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
+            let scrollOffsetThreshold = scrollViewContentHeight / 2 - tableView.bounds.size.height
             
             
             if(scrollView.contentOffset.y > scrollOffsetThreshold && tableView.isDragging) {
@@ -99,17 +122,23 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
                 
             }
         }
-        
     }
     
-    /*
+    
      // MARK: - Navigation
      
      // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
      // Get the new view controller using segue.destinationViewController.
      // Pass the selected object to the new view controller.
+        
+        let cell = sender as! UITableViewCell
+        if let indexPath = tableView.indexPath(for: cell) {
+            let business = businesses[indexPath.row]
+            let mapViewController = segue.destination as! MapViewController
+            mapViewController.business = business
+        }
      }
-     */
+ 
     
 }
